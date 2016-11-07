@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:lang="http://www.springframework.org/schema/lang"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+		http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<!-- context:annotation-config sirve para utilizar anotaciones como Autowired 
+	ó Required. En nuestro caso se usa @Autowired del servicio en el Controller -->
+	<context:annotation-config />
+	<mvc:annotation-driven />
+	
+	<context:component-scan base-package="ar.com.petsclinic.controller" />
+	
+<!--  Resolucion de la parte de vista por parte del DispatcherServlet -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/"></property>
+		<property name="suffix" value=".jsp"></property>
+		<property name="order" value="1" />
+	</bean>
+	
+<!-- 	Configuraciones para acceso a datos -->
+	<bean id="dataSource"
+	    class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+	    <property name="driverClass" value="com.mysql.jdbc.Driver" />
+        <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/spring" />
+        <property name="user" value="root" />
+        <property name="password" value="root" />
+
+	    <property name="idleConnectionTestPeriod" value="14400"/>
+    	<property name="preferredTestQuery" value="select 1"/>
+	</bean>
+	
+	<bean id="sessionFactory"
+	    class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+	    <property name="dataSource" ref="dataSource" />
+	    <property name="configLocation">
+	        <value>classpath:hibernate.cfg.xml</value>
+	    </property>
+	    <property name="configurationClass">
+	        <value>org.hibernate.cfg.AnnotationConfiguration</value>
+	    </property>
+	    <property name="hibernateProperties">
+	        <props>
+	            <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+	            <prop key="hibernate.show_sql">true</prop>
+	            <prop key="hibernate.hbm2ddl.auto">update</prop>
+	        </props>
+	    </property>
+	</bean>
+	
+	<tx:annotation-driven />
+	
+    <bean id="transactionManager"
+        class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+    
+    <bean id="hibernateTemplate" class="org.springframework.orm.hibernate3.HibernateTemplate">
+        <property name="sessionFactory">
+            <ref bean="sessionFactory"/>
+        </property>
+    </bean>
+    
+    <!-- Repositories -->
+    <bean name="petRepository" class="ar.com.petsclinic.dao.impl.PetRepository"></bean>
+    
+    <!-- Services -->
+    <bean name="petService" class="ar.com.petsclinic.service.impl.PetServiceImpl"></bean>
+	
+</beans>
